@@ -358,7 +358,9 @@
       <div class="peak-label">Overall peak rating</div>
       <div class="peak-number" id="peakNumber">—</div>
       <div class="peak-context" id="peakContext"></div>
-      <p>See your T8 peak at <a href="https://tinyurl.com/t8peak">https://tinyurl.com/t8peak</a></p>
+      <p class="peak-context" style="margin-top: 10px;">
+        See your T8 peak at <a href="https://tinyurl.com/t8peak" style="color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--accent);">tinyurl.com/t8peak</a>
+      </p> 
     </div>
 
     <div class="section-title">Peak per character</div>
@@ -589,13 +591,10 @@ $('playerInput').addEventListener('keydown', (e) => {
   if (e.key === 'Enter') scan();
 });
 </script>
-
-</body>
-<footer>
-  <img
+<img
   src="https://hitscounter.dev/api/hit?url=t8peakfinder&label=views&icon=eye&color=%23c84a3f"
   alt=""
-  style="opacity: 0.5; height: 18px; display:none"
+  style="opacity: 0.5; height: 18px"
 >
-</footer>
+</body>
 </html>
