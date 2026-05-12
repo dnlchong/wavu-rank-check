@@ -719,7 +719,7 @@ function renderResults(playerInfo, matches, pagesFetched) {
   $('peakContext').innerHTML =
     `Reached with <strong>${peak.char}</strong> on <strong>${fmtDate(peak.battleAt)}</strong>, ` +
     `${peak.won ? 'after defeating' : 'in a loss to'} <strong>${peak.oppName}</strong> (${peak.oppChar}). ` +
-    `<span class="percentile-inline"><strong>${playerInfo.name}</strong> is in the top ${topPercentDisplay}% of Tekken players.</span>`;
+    `<strong>${playerInfo.name}</strong> is in the <span class="percentile-inline">top ${topPercentDisplay + ' '}%</span> of Tekken players.`;
 
   const charEntries = [...byChar.entries()].sort((a, b) => b[1].peak.rating - a[1].peak.rating);
   const grid = $('charGrid');
