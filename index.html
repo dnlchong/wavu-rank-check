@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Peak Finder — Wavu Wank Tekken 8</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=JetBrains+Mono:wght@400;500&family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-0: #0e0e10;
+    --bg-1: #16161a;
+    --bg-2: #1c1c21;
+    --ink: #e8e6e3;
+    --ink-dim: #8a857f;
+    --ink-fade: #56524d;
+    --accent: #c84a3f;
+    --accent-soft: #d97062;
+    --line: rgba(232, 230, 227, 0.07);
+    --line-strong: rgba(232, 230, 227, 0.14);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--bg-0);
+    color: var(--ink);
+    font-family: 'Outfit', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse 90% 50% at 50% 0%, rgba(200, 74, 63, 0.06), transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  main {
+    position: relative;
+    z-index: 2;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 72px 24px 80px;
+  }
+
+  header { margin-bottom: 40px; }
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  h1 {
+    font-family: 'Bungee', sans-serif;
+    font-size: clamp(36px, 6vw, 56px);
+    line-height: 0.95;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    font-weight: normal;
+  }
+  h1 .accent { color: var(--accent); }
+
+  .tagline {
+    margin-top: 16px;
+    font-size: 15px;
+    color: var(--ink-dim);
+    max-width: 520px;
+    line-height: 1.55;
+    font-weight: 300;
+  }
+  .tagline code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    background: var(--bg-2);
+    padding: 2px 6px;
+    border: 1px solid var(--line);
+    color: var(--ink);
+  }
+
+  .input-card {
+    background: var(--bg-1);
+    border: 1px solid var(--line);
+    padding: 24px;
+    margin-bottom: 32px;
+  }
+
+  label {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin-bottom: 10px;
+  }
+  input[type="text"] {
+    width: 100%;
+    background: var(--bg-0);
+    border: 1px solid var(--line-strong);
+    color: var(--ink);
+    padding: 13px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  input[type="text"]:focus { border-color: var(--accent); }
+  input[type="text"]::placeholder { color: var(--ink-fade); }
+
+  .hint {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-fade);
+    margin-top: 8px;
+  }
+
+  button.scan {
+    background: var(--accent);
+    color: white;
+    border: none;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 13px 24px;
+    cursor: pointer;
+    margin-top: 18px;
+    transition: background 0.15s;
+  }
+  button.scan:hover:not(:disabled) { background: var(--accent-soft); }
+  button.scan:disabled {
+    background: var(--bg-2);
+    color: var(--ink-fade);
+    cursor: not-allowed;
+  }
+
+  .progress { margin-top: 20px; display: none; }
+  .progress.active { display: block; }
+  .progress-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-dim);
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .progress-bar {
+    height: 2px;
+    background: var(--bg-0);
+    overflow: hidden;
+    position: relative;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--accent);
+    width: 30%;
+    animation: slide 1.6s ease-in-out infinite;
+  }
+  @keyframes slide {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(400%); }
+  }
+
+  .results { display: none; margin-top: 36px; }
+  .results.active { display: block; animation: fadeIn 0.4s ease-out; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .player-card {
+    background: var(--bg-1);
+    border: 1px solid var(--line);
+    padding: 28px;
+    margin-bottom: 24px;
+  }
+  .player-name {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 22px;
+    margin-bottom: 4px;
+    word-break: break-word;
+    letter-spacing: -0.01em;
+  }
+  .player-meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-dim);
+    margin-bottom: 28px;
+  }
+
+  .peak-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin-bottom: 8px;
+  }
+  .peak-number {
+    font-family: 'Bungee', sans-serif;
+    font-size: clamp(56px, 11vw, 96px);
+    line-height: 0.95;
+    color: var(--accent);
+    letter-spacing: -0.02em;
+  }
+  .peak-context {
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    color: var(--ink-dim);
+    margin-top: 18px;
+    line-height: 1.7;
+    font-weight: 300;
+  }
+  .peak-context strong { color: var(--ink); font-weight: 500; }
+
+  .section-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin: 32px 0 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .char-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+  }
+  .char-card {
+    background: var(--bg-1);
+    border: 1px solid var(--line);
+    padding: 16px 18px;
+    transition: border-color 0.15s;
+  }
+  .char-card:hover { border-color: var(--line-strong); }
+  .char-card.top { border-left: 2px solid var(--accent); }
+
+  .char-name {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 500;
+    font-size: 15px;
+    margin-bottom: 6px;
+    letter-spacing: -0.005em;
+  }
+  .char-peak {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 24px;
+    font-weight: 500;
+    color: var(--ink);
+    line-height: 1;
+    margin: 6px 0;
+  }
+  .char-card.top .char-peak { color: var(--accent); }
+  .char-games {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-fade);
+    letter-spacing: 0.03em;
+  }
+
+  .error {
+    border: 1px solid var(--accent);
+    border-left-width: 2px;
+    padding: 16px 20px;
+    margin-top: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--ink);
+    display: none;
+    background: rgba(200, 74, 63, 0.05);
+  }
+  .error.active { display: block; }
+  .error-title {
+    font-weight: 500;
+    color: var(--accent);
+    margin-bottom: 6px;
+    letter-spacing: 0.05em;
+  }
+
+  footer {
+    margin-top: 64px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-fade);
+    letter-spacing: 0.03em;
+    line-height: 1.8;
+  }
+  footer a { color: var(--ink-dim); text-decoration: none; border-bottom: 1px solid var(--line); }
+  footer a:hover { color: var(--accent); }
+
+  @media (max-width: 600px) {
+    main { padding: 48px 18px 60px; }
+    .input-card, .player-card { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<main>
+  <header>
+    <div class="eyebrow">Tekken 8</div>
+    <h1>Peak <span class="accent">Finder</span></h1>
+    <p class="tagline">
+      Drop in a player URL or ID from <code>wank.wavu.wiki</code> and get their highest all-time rank per character.
+    </p>
+  </header>
+
+  <section class="input-card">
+    <label for="playerInput">Player URL or ID</label>
+    <input
+      type="text"
+      id="playerInput"
+      placeholder="Enter url or id"
+      value=""
+      autocomplete="off"
+      spellcheck="false"
+    >
+    <div class="hint">Paste the full profile URL or just the player ID at the end of it.</div>
+
+    <button class="scan" id="scanBtn">Scan history</button>
+
+    <div class="progress" id="progress">
+      <div class="progress-label">
+        <span id="progressText">Fetching page 1…</span>
+        <span id="progressCount">0 matches</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-bar-fill"></div>
+      </div>
+    </div>
+
+    <div class="error" id="error">
+      <div class="error-title">Error</div>
+      <div id="errorMsg"></div>
+    </div>
+  </section>
+
+  <section class="results" id="results">
+    <div class="player-card">
+      <div class="player-name" id="playerName">—</div>
+      <div class="player-meta" id="playerMeta">—</div>
+
+      <div class="peak-label">Overall peak rating</div>
+      <div class="peak-number" id="peakNumber">—</div>
+      <div class="peak-context" id="peakContext"></div>
+    </div>
+
+    <div class="section-title">Peak per character</div>
+    <div class="char-grid" id="charGrid"></div>
+  </section>
+
+  <footer>
+    <div>Data from <a href="https://wank.wavu.wiki" target="_blank">wank.wavu.wiki</a> · not affiliated</div>
+    <div>Ratings are Glicko-2 μ. Old replays may be missing from the source database.</div>
+  </footer>
+</main>
+
+<script>
+'use strict';
+
+// Public CORS proxies tried in order. If one fails or rate-limits, the next
+// is attempted. Free proxies come and go, so having a chain is more robust
+// than relying on any single one.
+const PROXIES = [
+  (url) => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
+  (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+  (url) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+];
+const BASE = 'https://wank.wavu.wiki';
+const REQUEST_DELAY_MS = 700;
+
+const $ = (id) => document.getElementById(id);
+
+function extractPlayerId(input) {
+  const trimmed = input.trim();
+  const urlMatch = trimmed.match(/\/player\/([A-Za-z0-9]+)/);
+  if (urlMatch) return urlMatch[1];
+  if (/^[A-Za-z0-9]+$/.test(trimmed)) return trimmed;
+  return null;
+}
+
+async function fetchPage(playerId, before) {
+  let url = `${BASE}/player/${playerId}`;
+  if (before) url += `?before=${before}`;
+
+  const errors = [];
+  for (let i = 0; i < PROXIES.length; i++) {
+    const proxyUrl = PROXIES[i](url);
+    try {
+      const r = await fetch(proxyUrl, { headers: { 'Accept': 'text/html' } });
+      if (!r.ok) {
+        errors.push(`proxy ${i + 1} → HTTP ${r.status}`);
+        continue;
+      }
+      const text = await r.text();
+      // Some proxies return an empty body or an error page on failure
+      if (!text || text.length < 500) {
+        errors.push(`proxy ${i + 1} → empty/short response`);
+        continue;
+      }
+      return text;
+    } catch (err) {
+      errors.push(`proxy ${i + 1} → ${err.message || 'network error'}`);
+    }
+  }
+  throw new Error(
+    `All CORS proxies failed (${errors.join('; ')}). ` +
+    `Public proxies sometimes block sandboxed iframes — try deploying this file ` +
+    `to GitHub Pages or running it via a local server.`
+  );
+}
+
+function parsePlayerInfo(doc) {
+  const titleEl = doc.querySelector('title');
+  let name = titleEl ? titleEl.textContent.replace(/\s*•.*$/, '').trim() : 'Unknown';
+
+  const h1 = doc.querySelector('.player-header h1, h1');
+  if (h1 && h1.textContent.trim()) name = h1.textContent.trim();
+
+  const firstSelfPlayer = doc.querySelector('.game-list td.left .player a');
+  if (firstSelfPlayer && firstSelfPlayer.textContent.trim()) {
+    name = firstSelfPlayer.textContent.trim();
+  }
+
+  return { name };
+}
+
+function parseMatches(doc) {
+  const matches = [];
+  doc.querySelectorAll('.game-list tbody tr').forEach(row => {
+    const scripts = row.querySelectorAll('.battle-at script');
+    let battleAt = null;
+    scripts.forEach(s => {
+      const m = s.textContent.match(/printDateTime\((\d+)\)/);
+      if (m) battleAt = +m[1];
+    });
+
+    const left = row.querySelector('td.left');
+    if (!left) return;
+
+    const char = left.querySelector('.char')?.textContent.trim();
+    const ratingEl = left.querySelector('.rating');
+    if (!ratingEl || !char) return;
+
+    let ratingText = '';
+    for (const node of ratingEl.childNodes) {
+      if (node.nodeType === Node.TEXT_NODE) ratingText += node.textContent;
+    }
+    const rating = parseInt(ratingText.trim(), 10);
+    if (!Number.isFinite(rating)) return;
+
+    const won = !!left.querySelector('.win');
+
+    const right = row.querySelector('td.right');
+    const oppChar = right?.querySelector('.char')?.textContent.trim() || '?';
+    const oppName = right?.querySelector('.player a')?.textContent.trim() || '?';
+
+    matches.push({ battleAt, rating, char, won, oppChar, oppName });
+  });
+  return matches;
+}
+
+function hasNextPage(doc) {
+  const links = doc.querySelectorAll('a');
+  for (const a of links) {
+    if (a.href && /[?&]before=\d+/.test(a.href) && /next/i.test(a.textContent)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+async function scan() {
+  $('error').classList.remove('active');
+  $('results').classList.remove('active');
+  $('scanBtn').disabled = true;
+  $('progress').classList.add('active');
+  $('progressText').textContent = 'Resolving player…';
+  $('progressCount').textContent = '0 matches';
+
+  try {
+    const raw = $('playerInput').value;
+    const playerId = extractPlayerId(raw);
+    if (!playerId) throw new Error('Could not extract player ID. Paste the full URL or just the ID (e.g. 5Ht5Hihm3dr6).');
+
+    let allMatches = [];
+    let playerInfo = null;
+    let before = null;
+    let page = 0;
+
+    while (true) {
+      page++;
+      $('progressText').textContent = `Fetching page ${page}…`;
+
+      const html = await fetchPage(playerId, before);
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+      if (!playerInfo) playerInfo = parsePlayerInfo(doc);
+
+      const matches = parseMatches(doc);
+      if (matches.length === 0) break;
+
+      allMatches = allMatches.concat(matches);
+      $('progressCount').textContent = `${allMatches.length.toLocaleString()} matches`;
+
+      if (!hasNextPage(doc)) break;
+      before = Math.min(...matches.map(m => m.battleAt).filter(Number.isFinite));
+
+      await new Promise(r => setTimeout(r, REQUEST_DELAY_MS));
+    }
+
+    if (allMatches.length === 0) {
+      throw new Error('No matches found for this player. Double-check the URL or ID.');
+    }
+
+    renderResults(playerInfo, allMatches, page);
+  } catch (err) {
+    $('error').classList.add('active');
+    $('errorMsg').textContent = err.message || String(err);
+    console.error(err);
+  } finally {
+    $('progress').classList.remove('active');
+    $('scanBtn').disabled = false;
+  }
+}
+
+function fmtDate(ts) {
+  return new Date(ts * 1000).toLocaleString(undefined, {
+    day: 'numeric', month: 'short', year: 'numeric',
+    hour: '2-digit', minute: '2-digit', hourCycle: 'h23'
+  });
+}
+
+function renderResults(playerInfo, matches, pagesFetched) {
+  let peak = matches[0];
+  for (const m of matches) if (m.rating > peak.rating) peak = m;
+
+  const byChar = new Map();
+  for (const m of matches) {
+    const cur = byChar.get(m.char);
+    if (!cur || m.rating > cur.peak.rating) {
+      byChar.set(m.char, { peak: m, games: (cur?.games || 0) + 1 });
+    } else {
+      cur.games += 1;
+    }
+  }
+
+  $('playerName').textContent = playerInfo.name;
+  $('playerMeta').textContent =
+    `${matches.length.toLocaleString()} matches scanned · ${pagesFetched} page${pagesFetched === 1 ? '' : 's'}`;
+
+  $('peakNumber').textContent = peak.rating;
+  $('peakContext').innerHTML =
+    `Reached with <strong>${peak.char}</strong> on <strong>${fmtDate(peak.battleAt)}</strong>, ` +
+    `${peak.won ? 'after defeating' : 'in a loss to'} <strong>${peak.oppName}</strong> (${peak.oppChar}).`;
+
+  const charEntries = [...byChar.entries()].sort((a, b) => b[1].peak.rating - a[1].peak.rating);
+  const grid = $('charGrid');
+  grid.innerHTML = '';
+  charEntries.forEach(([char, data], i) => {
+    const card = document.createElement('div');
+    card.className = 'char-card' + (i === 0 ? ' top' : '');
+    card.innerHTML = `
+      <div class="char-name">${char}</div>
+      <div class="char-peak">${data.peak.rating}</div>
+      <div class="char-games">${data.games.toLocaleString()} games · ${fmtDate(data.peak.battleAt).split(',')[0]}</div>
+    `;
+    grid.appendChild(card);
+  });
+
+  $('results').classList.add('active');
+  $('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+$('scanBtn').addEventListener('click', scan);
+$('playerInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') scan();
+});
+</script>
+
+</body>
+</html>
