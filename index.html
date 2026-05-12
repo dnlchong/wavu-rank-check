@@ -457,11 +457,9 @@ function parseMatches(doc) {
     const ratingEl = left.querySelector('.rating');
     if (!ratingEl || !char) return;
 
-    let ratingText = '';
-    for (const node of ratingEl.childNodes) {
-      if (node.nodeType === Node.TEXT_NODE) ratingText += node.textContent;
-    }
-    const rating = parseInt(ratingText.trim(), 10);
+    const m = ratingEl.textContent.match(/(-?\d+)\s*([+-]\d+)/);
+    if (!m) return;
+    const rating = parseInt(m[1], 10) + parseInt(m[2], 10) + 1;
     if (!Number.isFinite(rating)) return;
 
     const won = !!left.querySelector('.win');
